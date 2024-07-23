@@ -7,5 +7,7 @@
         void MovePiece(ISpace oldSpace, ISpace newSpace, bool resetSpecialMoves = true);
 
         IEnumerable<ISpace> AsEnumerable();
+
+        ISpace this[int i, int j] { get; }
     }
 }

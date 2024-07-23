@@ -176,6 +176,18 @@ namespace OnlineChess
             {
                 move = Console.ReadLine()!;
                 moveCount = moves.Where(x => (x.newSpace.Point.X + 1 == Convert.ToInt32(move[0]) - 48 || x.newSpace.Point.X + 1 == Convert.ToInt32(move[0]) - 96) && x.newSpace.Point.Y + 1 == Convert.ToInt32(move[1]) - 48).ToList();
+
+                if (moveCount.Count == 0 && (move == "0-0" || move.Equals("O-O", StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    foreach (var x in moves)
+                    {
+                        if (x.oldSpace.GetPiece() is King king)
+                        {
+                            if (king.CastleSpaces.Any(space => space.kingSpace == x.newSpace))
+                                moveCount.Add(x);
+                        }
+                    }
+                }
             }
 
             if (moveCount.Count > 1)

@@ -1,9 +1,4 @@
 ﻿using OnlineChess.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OnlineChess.Implementations
 {
@@ -11,7 +6,10 @@ namespace OnlineChess.Implementations
     {
         public bool IsWhite { get; private set; }
         public Guid Id { get; private set; }
+        public bool CanCastle { get; set; } = true;
+
         public Point Point { get; set; }
+
 
         public Rook(Board board)
         {
@@ -38,10 +36,11 @@ namespace OnlineChess.Implementations
             throw new Exception("No room for new knight");
         }
 
-        public Rook(Board board, Point point, bool isWhite)
+        public Rook(Board board, Point point, bool isWhite, bool canCastle = false)
         {
             Point = point;
             IsWhite = isWhite;
+            CanCastle = canCastle;
             board.Spaces[point.X, point.Y].SetPiece(this);
         }
 

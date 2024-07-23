@@ -10,6 +10,18 @@ namespace OnlineChess.Implementations
         public List<IPiece> WhitePieces { get; set; }
         public List<IPiece> BlackPieces { get; set; }
 
+        public ISpace this[int i, int j]
+        {
+            get
+            {
+                return Spaces[i, j];
+            }
+            set
+            {
+                Spaces[i, j] = value;
+            }
+        }
+
         public Board()
         {
             Spaces = new ISpace[8, 8];
@@ -29,6 +41,16 @@ namespace OnlineChess.Implementations
 
             if (!runSpecialMoves)
                 return;
+
+            if (newSpace.GetPiece() is Rook rook)
+                rook.CanCastle = false;
+
+            if (newSpace.GetPiece() is King king && king.CastleSpaces.Any(x => x.kingSpace == newSpace))
+            {
+                king.CanCastle = false;
+                (ISpace oldSpace, ISpace newSpace) move = king.CastleSpaces.Where(x => x.kingSpace == newSpace).Select(x => (x.oldRookSpace, x.newRookSpace)).First();
+                MovePiece(move.oldSpace, move.newSpace);
+            }
 
             if (piece is not null)
             {

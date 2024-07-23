@@ -1,10 +1,14 @@
 ﻿using OnlineChess.Interfaces;
+using System.Collections.Generic;
 
 namespace OnlineChess.Implementations
 {
     public class King : IPiece
     {
         public bool IsWhite { get; private set; }
+        public bool CanCastle { get; set; } = true;
+        public List<(ISpace kingSpace, ISpace oldRookSpace, ISpace newRookSpace)> CastleSpaces { get; private set; } = [];
+
         public Point Point { get; set; }
 
         public Guid Id { get; private set; }
@@ -58,6 +62,8 @@ namespace OnlineChess.Implementations
                 }
             }
 
+            possibleMoves.AddRange(GetCastleSpaces(board, checkLegalMoves));
+
             possibleMoves = checkLegalMoves ? possibleMoves.GetLegalMoves(board, this, Point) : possibleMoves;
 
             List<(ISpace oldSpace, ISpace newSpace)> result = [];
@@ -93,6 +99,72 @@ namespace OnlineChess.Implementations
             }
 
             return spaces.Any(x => x.GetPiece() == this);
+        }
+
+        private List<ISpace> GetCastleSpaces(IBoard board, bool checkLegalMoves)
+        {
+            CastleSpaces = [];
+            List<Rook> rooks = GetRooks(board).Where(x => x.CanCastle).ToList();
+
+            if (!(rooks.Count > 0 && CanCastle))
+                return [];
+
+            foreach (var rook in rooks)
+            {
+                int incrementer = rook.Point.X > Point.X ? 1 : -1;
+
+                int x = Point.X + incrementer;
+                int y = Point.Y;
+                List<ISpace> spaces = [];
+
+                while (rook.Point.X != x)
+                {
+                    if (board[x, y].GetPiece() is not null)
+                        break;
+
+                    spaces.Add(board[x, y]);
+                    x += incrementer;
+                }
+
+                if (rook.Point.X != x)
+                    continue;
+
+                if (checkLegalMoves && board is Board b)
+                {
+                    bool isSpaceCovered = false;
+
+                    foreach (var space in spaces)
+                    {
+                        if (b.GetAllLegalMoves(!IsWhite).Any(x => x.newSpace == space))
+                            isSpaceCovered = true;
+                    }
+
+                    if (isSpaceCovered)
+                        continue;
+                }
+
+                CastleSpaces.Add((spaces[1], board[rook.Point.X, rook.Point.Y], spaces[0]));
+            }
+
+            return CastleSpaces.Select(x => x.kingSpace).ToList();
+        }
+
+        private List<Rook> GetRooks(IBoard board)
+        {
+            List<Rook> rooks = [];
+
+            foreach (ISpace space in board.Spaces)
+            {
+                IPiece? piece = space.GetPiece();
+
+                if (piece is null)
+                    continue;
+
+                if (piece is Rook rook && rook.IsWhite == IsWhite)
+                    rooks.Add(rook);
+            }
+
+            return rooks;
         }
     }
 }
