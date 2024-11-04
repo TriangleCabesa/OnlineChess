@@ -38,6 +38,12 @@
             Name = "Window";
             Text = "Window";
             Load += Window_Load;
+            Shown += Window_Shown;
+            ResizeBegin += Window_ResizeBegin;
+            ResizeEnd += Window_ResizeEnd;
+            SizeChanged += Window_SizeChanged;
+            Paint += PaintWindow;
+            MouseClick += Window_MouseClick;
             ResumeLayout(false);
         }
 

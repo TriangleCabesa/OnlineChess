@@ -1,22 +1,50 @@
-﻿using OnlineChess.Implementations;
+﻿using FunctionalCore.Types;
+using OnlineChess.Implementations;
 using OnlineChess.Interfaces;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using static FunctionalCore.Extensions.Option;
 
 namespace OnlineChess
 {
     public partial class Window : Form
     {
         public Board Board;
+        public BoardHandler BoardHandler;
+
+        public int FrameRate = 120;
+        public bool CanPaint = true;
+
+        public Option<Point> ClickPoint;
 
         public Window()
         {
             InitializeComponent();
             Board = new();
+            BoardHandler = new(this);
+            DoubleBuffered = true;
+            ClickPoint = None<Point>();
+
+            Task.Run(() =>
+            {
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                while (true)
+                {
+                    stopwatch.Restart();
+
+                    while (stopwatch.Elapsed < TimeSpan.FromMilliseconds(1000 / FrameRate))
+                        ;
+
+                    CanPaint = true;
+                }
+            });
         }
 
         private void Window_Load(object sender, EventArgs e)
         {
-            AllocConsole();
+            return;
+
             bool isWhite = true;
             OutputBoard();
             bool checkNextRound = false;
@@ -218,7 +246,57 @@ namespace OnlineChess
             return moves.IndexOf(moveCount[0]);
         }
 
-        [LibraryImport("kernel32.dll", SetLastError = true)]
-        static partial void AllocConsole();
+        private void PaintWindow(object sender, PaintEventArgs e)
+        {
+            var image = BoardHandler.GetBoardImage();
+            e.Graphics.DrawImage(image, 0, 0, image.Width, image.Height);
+        }
+
+        private void RefreshWindow()
+        {
+            if (!CanPaint)
+                return;
+
+            Refresh();
+            CanPaint = false;
+        }
+
+        private void Window_ResizeBegin(object sender, EventArgs e)
+        {
+            RefreshWindow();
+        }
+
+        private void Window_ResizeEnd(object sender, EventArgs e)
+        {
+            RefreshWindow();
+        }
+
+        private void Window_SizeChanged(object sender, EventArgs e)
+        {
+            RefreshWindow();
+        }
+
+        private void Window_MouseClick(object sender, MouseEventArgs e)
+        {
+            ClickPoint = Some(new Point(e.X, e.Y));
+            RefreshWindow();
+        }
+
+        private void Window_Shown(object sender, EventArgs e)
+        {
+            while (true)
+            {
+                RefreshWindow();
+                DoEvents();
+            }
+        }
+        private void DoEvents()
+        {
+            while (!CanPaint)
+            {
+                Application.DoEvents();
+            }
+        }
+
     }
 }

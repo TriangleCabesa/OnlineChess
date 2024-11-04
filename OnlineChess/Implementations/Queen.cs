@@ -12,8 +12,8 @@ namespace OnlineChess.Implementations
         {
             List<(Point point, bool isWhite)> spawnPoints =
             [
-                (new Point(3, 0), true),
-                (new Point(3, 7), false),
+                (new Point(3, 0), false),
+                (new Point(3, 7), true),
             ];
 
             foreach ((Point point, bool isWhite) in spawnPoints)
@@ -112,7 +112,9 @@ namespace OnlineChess.Implementations
 
         public Bitmap GetSprite()
         {
-            throw new NotImplementedException();
+            string color = IsWhite ? "White" : "Black";
+
+            return new Bitmap(Directory.GetCurrentDirectory().Split("OnlineChess").First() + $@"OnlineChess\OnlineChess\Images\{color}Queen.png");
         }
 
         private King GetKing(IBoard board)

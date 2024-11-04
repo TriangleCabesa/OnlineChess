@@ -49,7 +49,9 @@ namespace OnlineChess.Implementations
             {
                 king.CanCastle = false;
                 (ISpace oldSpace, ISpace newSpace) move = king.CastleSpaces.Where(x => x.kingSpace == newSpace).Select(x => (x.oldRookSpace, x.newRookSpace)).First();
-                MovePiece(move.oldSpace, move.newSpace);
+                MovePiece(move.oldSpace, move.newSpace, false);
+
+                return;
             }
 
             if (piece is not null)
@@ -73,7 +75,7 @@ namespace OnlineChess.Implementations
             foreach (ISpace space in Spaces)
             {
                 if (space.GetPiece() is Pawn pawn)
-                    if (pawn.IsWhite == newSpace.GetPiece()!.IsWhite)
+                    if (pawn.IsWhite == newSpace.GetPiece()?.IsWhite)
                         pawn.EnPessantSpace = (null, null);
             }
         }

@@ -19,7 +19,7 @@ namespace OnlineChess.Implementations
 
             if (!board.Spaces[4, 0].IsOccupied)
             {
-                IsWhite = true;
+                IsWhite = false;
                 Point = new(4, 0);
                 board.Spaces[4, 0].SetPiece(this);
 
@@ -28,7 +28,7 @@ namespace OnlineChess.Implementations
 
             if (!board.Spaces[4, 7].IsOccupied)
             {
-                IsWhite = false;
+                IsWhite = true;
                 Point = new(4, 7);
                 board.Spaces[4, 7].SetPiece(this);
 
@@ -78,7 +78,9 @@ namespace OnlineChess.Implementations
 
         public Bitmap GetSprite()
         {
-            throw new NotImplementedException();
+            string color = IsWhite ? "White" : "Black";
+
+            return new Bitmap(Directory.GetCurrentDirectory().Split("OnlineChess").First() + $@"OnlineChess\OnlineChess\Images\{color}King.png");
         }
 
         public bool IsInCheck(IBoard board)

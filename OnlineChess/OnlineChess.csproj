@@ -9,4 +9,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Conservice.Integrations.FunctionalCore" Version="0.3.2-alpha" />
+  </ItemGroup>
+
 </Project>

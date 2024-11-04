@@ -14,16 +14,16 @@ namespace OnlineChess.Implementations
             if (Point.Y == 0 || Point.Y == board.Spaces.GetLength(1) - 1)
                 return [];
 
-            int y = IsWhite ? Point.Y + 1 : Point.Y - 1;
+            int y = IsWhite ? Point.Y - 1 : Point.Y + 1;
             int x = Point.X;
-            bool firstMove = IsWhite ? Point.Y == 1 : Point.Y == 6;
+            bool firstMove = IsWhite ? Point.Y == 6 : Point.Y == 1;
 
             List<ISpace> possibleMoves = [];
 
             if (!board.Spaces[x, y].IsOccupied)
             {
                 possibleMoves.Add(board.Spaces[x, y]);
-                int secondY = IsWhite ? Point.Y + 2 : Point.Y - 2;
+                int secondY = IsWhite ? Point.Y - 2 : Point.Y + 2;
 
                 if (firstMove && !board.Spaces[x, secondY].IsOccupied)
                 {
@@ -60,7 +60,9 @@ namespace OnlineChess.Implementations
 
         public Bitmap GetSprite()
         {
-            return new Bitmap("");
+            string color = IsWhite ? "White" : "Black";
+
+            return new Bitmap(Directory.GetCurrentDirectory().Split("OnlineChess").First() + $@"OnlineChess\OnlineChess\Images\{color}Pawn.png");
         }
 
         public Pawn(IBoard board)
@@ -72,7 +74,7 @@ namespace OnlineChess.Implementations
                 if (board.Spaces[i, 1].IsOccupied)
                     continue;
 
-                IsWhite = true;
+                IsWhite = false;
                 Point = new Point(i, 1);
                 board.Spaces[i, 1].SetPiece(this);
 
@@ -84,7 +86,7 @@ namespace OnlineChess.Implementations
                 if (board.Spaces[i, 6].IsOccupied)
                     continue;
 
-                IsWhite = false;
+                IsWhite = true;
                 Point = new Point(i, 6);
                 board.Spaces[i, 6].SetPiece(this);
 
