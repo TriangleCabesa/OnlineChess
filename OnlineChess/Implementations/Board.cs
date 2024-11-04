@@ -181,8 +181,8 @@ namespace OnlineChess.Implementations
             if (space.GetPiece() is not Pawn pawn)
                 return;
 
-            if ((pawn.IsWhite && pawn.Point.Y == Spaces.GetLength(1) - 1)
-             || (!pawn.IsWhite && pawn.Point.Y == 0))
+            if ((!pawn.IsWhite && pawn.Point.Y == Spaces.GetLength(1) - 1)
+             || (pawn.IsWhite && pawn.Point.Y == 0))
             {
                 IPiece piece = new Queen(this, pawn.Point, pawn.IsWhite);
                 space.SetPiece(piece);

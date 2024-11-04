@@ -106,8 +106,8 @@ public class BoardHandler
                 _graphics.FillEllipse(new SolidBrush(Color.FromArgb(255, 255, 0, 0)),
                 new Rectangle(king.Point.X * squareSize + squareSize / 5,
                     king.Point.Y * squareSize + squareSize / 5,
-                    squareSize - squareSize / 5,
-                    squareSize - squareSize / 5));
+                    squareSize - (squareSize / 5) * 2,
+                    squareSize - (squareSize / 5) * 2));
         }
     }
 
@@ -158,8 +158,8 @@ public class BoardHandler
             _graphics.FillEllipse(new SolidBrush(Color.FromArgb(50, 0, 0, 0)),
                 new Rectangle(newSpace.Point.X * squareSize + squareSize / 5,
                     newSpace.Point.Y * squareSize + squareSize / 5,
-                    squareSize - squareSize / 5,
-                    squareSize - squareSize / 5));
+                    squareSize - (squareSize / 5) * 2,
+                    squareSize - (squareSize / 5) * 2));
         }
     }
 
