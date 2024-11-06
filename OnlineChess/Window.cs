@@ -64,7 +64,7 @@ namespace OnlineChess
                 else
                     index = new Random().Next(moves.Count);
 
-                Board.MovePiece(moves[index].oldSpace, moves[index].newSpace);
+                Board.SimulatePieceMove(moves[index].oldSpace, moves[index].newSpace);
                 playedMoves.Add((moves[index].oldSpace.Point, moves[index].newSpace.Point));
 
                 if (IsKingInCheck(isWhite))

@@ -9,6 +9,7 @@ namespace OnlineChess.Implementations
         public ISpace[,] Spaces { get; private set; }
         public List<IPiece> WhitePieces { get; set; }
         public List<IPiece> BlackPieces { get; set; }
+        private (ISpace oldSpace, ISpace newSpace) LastMove { get; set; }
 
         public ISpace this[int i, int j]
         {
@@ -31,9 +32,9 @@ namespace OnlineChess.Implementations
             SetUpPieces();
         }
 
-        public void MovePiece(ISpace oldSpace, ISpace newSpace, bool runSpecialMoves = true)
+        public void SimulatePieceMove(ISpace oldSpace, ISpace newSpace, bool runSpecialMoves = true)
         {
-            IPiece? piece = newSpace.GetPiece();
+            IPiece? capturedPiece = newSpace.GetPiece();
             IPiece? currentPiece = oldSpace.GetPiece();
 
             newSpace.SetPiece(oldSpace.GetPiece());
@@ -49,35 +50,32 @@ namespace OnlineChess.Implementations
             {
                 king.CanCastle = false;
                 (ISpace oldSpace, ISpace newSpace) move = king.CastleSpaces.Where(x => x.kingSpace == newSpace).Select(x => (x.oldRookSpace, x.newRookSpace)).First();
-                MovePiece(move.oldSpace, move.newSpace, false);
+                SimulatePieceMove(move.oldSpace, move.newSpace, false);
 
                 return;
             }
 
-            if (piece is not null)
+            if (newSpace.GetPiece() is Pawn pawn && newSpace == pawn.EnPessantSpace.space)
             {
-                if (piece.IsWhite)
-                    WhitePieces.Remove(piece);
+                capturedPiece = pawn.EnPessantSpace.pawn;
+                Spaces[capturedPiece!.Point.X, capturedPiece.Point.Y].SetPiece(null);
+            }
+
+            if (capturedPiece is not null)
+            {
+                if (capturedPiece.IsWhite)
+                    WhitePieces.Remove(capturedPiece);
                 else
-                    BlackPieces.Remove(piece);
+                    BlackPieces.Remove(capturedPiece);
             }
 
             HandlePawnPromotions(newSpace);
+        }
 
-            if (newSpace.GetPiece() is Pawn)
-                foreach (var x in AsEnumerable())
-                    if (x.GetPiece() is Pawn y && y.EnPessantSpace is not (null, null) && y.EnPessantSpace.space == newSpace)
-                        Spaces[y.EnPessantSpace.pawn!.Point.X, y.EnPessantSpace.pawn!.Point.Y].SetPiece(null);
-
-            if (newSpace.GetPiece() is null)
-                newSpace.SetPiece(currentPiece);
-
-            foreach (ISpace space in Spaces)
-            {
-                if (space.GetPiece() is Pawn pawn)
-                    if (pawn.IsWhite == newSpace.GetPiece()?.IsWhite)
-                        pawn.EnPessantSpace = (null, null);
-            }
+        public void MovePiece(ISpace oldSpace, ISpace newSpace, bool runSpecialMoves = true)
+        {
+            SimulatePieceMove(oldSpace, newSpace, runSpecialMoves);
+            LastMove = (oldSpace, newSpace);
         }
 
         public List<(ISpace oldSpace, ISpace newSpace)> GetAllLegalMoves(bool isWhite)
@@ -225,6 +223,11 @@ namespace OnlineChess.Implementations
             }
 
             throw new Exception("King not found");
+        }
+
+        public (ISpace oldSpace, ISpace newSpace) GetLastMove()
+        {
+            return LastMove;
         }
     }
 }

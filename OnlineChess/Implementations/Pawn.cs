@@ -1,4 +1,5 @@
 ﻿using OnlineChess.Interfaces;
+using System.Collections.Generic;
 
 namespace OnlineChess.Implementations
 {
@@ -9,42 +10,17 @@ namespace OnlineChess.Implementations
         public Guid Id { get; private set; }
         public Point Point { get; set; }
 
+        private bool FirstMove { get => IsWhite ? Point.Y == 6 : Point.Y == 1; }
+        private int YDirection { get => IsWhite ? -1 : 1; }
+
         public List<(ISpace oldSpace, ISpace newSpace)> GetPossibleMoves(IBoard board, bool checkLegalMoves = true)
         {
             if (Point.Y == 0 || Point.Y == board.Spaces.GetLength(1) - 1)
                 return [];
 
-            int y = IsWhite ? Point.Y - 1 : Point.Y + 1;
-            int x = Point.X;
-            bool firstMove = IsWhite ? Point.Y == 6 : Point.Y == 1;
-
-            List<ISpace> possibleMoves = [];
-
-            if (!board.Spaces[x, y].IsOccupied)
-            {
-                possibleMoves.Add(board.Spaces[x, y]);
-                int secondY = IsWhite ? Point.Y - 2 : Point.Y + 2;
-
-                if (firstMove && !board.Spaces[x, secondY].IsOccupied)
-                {
-                    possibleMoves.Add(board.Spaces[x, secondY]);
-
-                    if (x > 0 && board.Spaces[x - 1, secondY].GetPiece() is Pawn && board.Spaces[x - 1, secondY].GetPiece()!.IsWhite != IsWhite)
-                        (board.Spaces[x - 1, secondY].GetPiece() as Pawn)!.EnPessantSpace = (board.Spaces[x, y], this);
-
-                    if (x < board.Spaces.GetLength(0) - 1 && board.Spaces[x + 1, secondY].GetPiece() is Pawn && board.Spaces[x + 1, secondY].GetPiece()!.IsWhite != IsWhite)
-                        (board.Spaces[x + 1, secondY].GetPiece() as Pawn)!.EnPessantSpace = (board.Spaces[x, y], this);
-                }
-            }
-
-            if (x > 0 && board.Spaces[x - 1, y].IsOccupied && board.Spaces[x - 1, y].GetPiece()!.IsWhite != IsWhite)
-                possibleMoves.Add(board.Spaces[x - 1, y]);
-
-            if (x < 7 && board.Spaces[x + 1, y].IsOccupied && board.Spaces[x + 1, y].GetPiece()!.IsWhite != IsWhite)
-                possibleMoves.Add(board.Spaces[x + 1, y]);
-
-            if (EnPessantSpace.space is not null)
-                possibleMoves.Add(EnPessantSpace.space);
+            List<ISpace> possibleMoves = [..AddForwardMoves(board)];
+            possibleMoves.AddRange(AddNormalCaptures(board));
+            possibleMoves.AddRange(AddEnPassant(board));
 
             possibleMoves = checkLegalMoves ? possibleMoves.GetLegalMoves(board, GetKing(board), Point) : possibleMoves;
 
@@ -56,6 +32,61 @@ namespace OnlineChess.Implementations
             }
 
             return result;
+        }
+
+        private List<ISpace> AddForwardMoves(IBoard board)
+        {
+            List<ISpace> result = [];
+
+            if (!board.Spaces[Point.X, Point.Y + YDirection].IsOccupied)
+                result.Add(board.Spaces[Point.X, Point.Y + YDirection]);
+
+            if (FirstMove && !board.Spaces[Point.X, Point.Y + YDirection * 2].IsOccupied)
+                result.Add(board.Spaces[Point.X, Point.Y + YDirection * 2]);
+
+            return result;
+        }
+
+        private List<ISpace> AddNormalCaptures(IBoard board)
+        {
+            List<ISpace> result = [];
+            bool spaceContainsEnemyPiece = Point.X > 0
+                && board.Spaces[Point.X - 1, Point.Y + YDirection].IsOccupied
+                && board.Spaces[Point.X - 1, Point.Y + YDirection].GetPiece()?.IsWhite != IsWhite;
+
+            if (spaceContainsEnemyPiece)
+                result.Add(board.Spaces[Point.X - 1, Point.Y + YDirection]);
+
+            spaceContainsEnemyPiece = Point.X < board.Spaces.GetLength(0) - 1
+                && board.Spaces[Point.X + 1, Point.Y + YDirection].IsOccupied
+                && board.Spaces[Point.X + 1, Point.Y + YDirection].GetPiece()?.IsWhite != IsWhite;
+
+            if (spaceContainsEnemyPiece)
+                result.Add(board.Spaces[Point.X + 1, Point.Y + YDirection]);
+
+            return result;
+        }
+
+        private List<ISpace> AddEnPassant(IBoard board)
+        {
+            var (oldSpace, newSpace) = board.GetLastMove();
+
+            bool isPawnOnEnPassantSquare = IsWhite ? Point.Y == 3 : Point.Y == 4;
+            bool isMoveOnEnPassantSquare = newSpace?.Point.Y == Point.Y;
+
+            if (!isPawnOnEnPassantSquare || !isMoveOnEnPassantSquare)
+                return [];
+
+            Pawn? pawn = newSpace?.GetPiece() as Pawn;
+            bool isLastMoveAnEnemyPawn = pawn?.IsWhite != IsWhite;
+            bool didPawnMoveTwoSpaces = Math.Abs(oldSpace?.Point.Y - newSpace?.Point.Y ?? 0) == 2;
+
+            if (!isLastMoveAnEnemyPawn || !didPawnMoveTwoSpaces)
+                return [];
+
+            EnPessantSpace = (board.Spaces[pawn!.Point.X, Point.Y + YDirection], pawn);
+
+            return [board.Spaces[pawn!.Point.X, Point.Y + YDirection]];
         }
 
         public Bitmap GetSprite()

@@ -14,12 +14,12 @@ namespace OnlineChess
             {
                 IPiece? piece = newSpace.GetPiece();
 
-                board.MovePiece(oldSpace, newSpace, false);
+                board.SimulatePieceMove(oldSpace, newSpace, false);
 
                 if (!king.IsInCheck(board))
                     result.Add(newSpace);
 
-                board.MovePiece(newSpace, oldSpace, false);
+                board.SimulatePieceMove(newSpace, oldSpace, false);
 
                 if (piece is not null)
                     newSpace.SetPiece(piece);
@@ -36,12 +36,12 @@ namespace OnlineChess
             {
                 IPiece? piece = newSpace.GetPiece();
 
-                board.MovePiece(oldSpace, newSpace, false);
+                board.SimulatePieceMove(oldSpace, newSpace, false);
 
                 if (!king.IsInCheck(board))
                     result.Add((oldSpace, newSpace));
 
-                board.MovePiece(newSpace, oldSpace, false);
+                board.SimulatePieceMove(newSpace, oldSpace, false);
                 newSpace.SetPiece(piece);
             }
 
