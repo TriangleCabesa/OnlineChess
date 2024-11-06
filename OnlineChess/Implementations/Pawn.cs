@@ -78,7 +78,7 @@ namespace OnlineChess.Implementations
                 return [];
 
             Pawn? pawn = newSpace?.GetPiece() as Pawn;
-            bool isLastMoveAnEnemyPawn = pawn?.IsWhite != IsWhite;
+            bool isLastMoveAnEnemyPawn = pawn is not null && pawn?.IsWhite != IsWhite;
             bool didPawnMoveTwoSpaces = Math.Abs(oldSpace?.Point.Y - newSpace?.Point.Y ?? 0) == 2;
 
             if (!isLastMoveAnEnemyPawn || !didPawnMoveTwoSpaces)
